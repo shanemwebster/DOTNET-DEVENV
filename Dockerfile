@@ -1,0 +1,26 @@
+# Dockerfile
+
+  FROM --platform=linux/amd64 mcr.microsoft.com/dotnet/nightly/sdk:latest
+  # Install apt based dependencies required to run Rails as
+  # well as RubyGems. As the Ruby image itself is based on a
+  # Debian image, we use apt-get to install those.
+  RUN apt-get update && apt-get install -y \
+    build-essential \
+    nano \
+    nodejs \
+    npm \
+    watchman \
+    && npm install -g yarn esbuild
+
+  # Configure the main working directory. This is the base
+  # directory used in any further RUN, COPY, and ENTRYPOINT
+  # commands.
+  RUN mkdir -p /app
+  WORKDIR /app
+
+  # Delete the node_modules folder
+  RUN rm -rf node_modules
+
+  COPY . /app
+  RUN rm -rf tmp/*
+  ADD . /app

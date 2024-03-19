@@ -1,0 +1,52 @@
+# docker-compose.yml
+
+  version: "3.8"
+  networks:
+    backend:
+    frontend:
+    selenium:
+  services:
+    db:
+      image: mcr.microsoft.com/mssql/server:2022-latest 
+      ports:
+        - "1433:1433"
+      environment:
+        ACCEPT_EULA: "Y"
+        MSSQL_SA_PASSWORD: "zaq1@WSX"
+      networks:
+        - backend
+    redis:
+      image: redis:7-alpine
+      ports:
+        - "6379:6379"
+      networks:
+        - backend
+    chrome_server:
+      image: seleniarm/standalone-chromium
+      volumes:
+        - /dev/shm:/dev/shm
+      networks:
+        - selenium
+    app:
+      image: bitnami/dotnet-sdk:latest
+      tty: true
+      volumes:
+        - .:/app
+      working_dir: /app
+      environment:
+        DB: mssql
+        DB_HOST: db
+        DB_PORT: 1433
+        DB_USERNAME: sa
+        DB_PASSWORD: zaq1@WSX
+        SELENIUM_REMOTE_URL: http://chrome_server:4444/wd/hub
+      networks:
+        - backend
+        - frontend
+        - selenium
+      ports:
+        - "3000:3000"
+      depends_on:
+        - db
+        - redis
+        - chrome_server
